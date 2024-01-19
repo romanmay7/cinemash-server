@@ -11,3 +11,13 @@ class GenericMovieData(models.Model):
 
     def __str__(self):
         return self.title
+
+
+
+# Currently not in use
+class UserProfile(models.Model):
+    name = models.CharField(max_length=255)
+    phoneNumber = models.IntegerField()
+    email = models.EmailField()
+    password = models.CharField(max_length=128) # Should be hashed before storing it
+    image = models.ImageField(upload_to='static/user_images/')

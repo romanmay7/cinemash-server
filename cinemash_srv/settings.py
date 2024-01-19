@@ -38,10 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'cinemash_core.apps.CinemashCoreConfig',
+    'corsheaders',
     'rest_framework',
 ]
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,8 +81,12 @@ WSGI_APPLICATION = 'cinemash_srv.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'djongo',
+        'CLIENT': {
+            "host":"mongodb+srv://<username>:<password>@cluster0.98giovi.mongodb.net/?retryWrites=true&w=majority",
+            "name":"cinemash-db",
+            "authMechanism":"SCRAM-SHA-1" # For Atlas Cloud DB
+        }
     }
 }
 
