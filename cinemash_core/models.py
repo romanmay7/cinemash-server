@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 
 class GenericMovieData(models.Model):
+    id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=150)
     description = models.CharField(max_length=300,blank=True)
     genre = models.CharField(max_length=50)

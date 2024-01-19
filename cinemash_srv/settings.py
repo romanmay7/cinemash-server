@@ -81,14 +81,15 @@ WSGI_APPLICATION = 'cinemash_srv.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'CLIENT': {
-            "host":"mongodb+srv://<username>:<password>@cluster0.98giovi.mongodb.net/?retryWrites=true&w=majority",
-            "name":"cinemash-db",
-            "authMechanism":"SCRAM-SHA-1" # For Atlas Cloud DB
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD':'',
+        'HOST': '',
+        'PORT':'46955',
         }
     }
-}
+
 
 
 # Password validation
