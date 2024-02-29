@@ -112,6 +112,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+#AUTH_USER_MODEL = 'cinemash_core.UserProfileInfo'
+
+swappable = 'AUTH_USER_MODEL'
+
+CSRF_COOKIE_SECURE = False
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000"
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/

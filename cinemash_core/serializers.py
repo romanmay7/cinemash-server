@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import GenericMovieData
+from .models import GenericMovieData, UserProfileInfo
 from django.contrib.auth.models import User
 
 class GenericMovieDataSerializer(serializers.ModelSerializer):
@@ -10,12 +10,25 @@ class GenericMovieDataSerializer(serializers.ModelSerializer):
 
 
 # create a serializer for user registration
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'password')
-        extra_kwargs = {'password': {'write_only': True}}  # Hide password in responses
+class UserProfileSerializer(serializers.ModelSerializer):
+        password = serializers.CharField(write_only=True)
 
-    def create(self, validated_data):
+        class Meta:
+            model = UserProfileInfo
+            fields = ('username', 'password', 'full_name', 'location',
+                      'favorite_genres_ids', 'age', 'bio', 'phone_number', 'email')
+            extra_kwargs = {'password': {'required': True}}
+
+        def create(self, validated_data):
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                password=validated_data['password']
+            )
+            user_profile = UserProfileInfo.objects.create(user=user, **validated_data)
+            return user_profile
+
+
+#create user
+def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user

@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth.models import User
+
 # Create your models here.
 
 class GenericMovieData(models.Model):
@@ -37,11 +38,17 @@ class Movie(models.Model):
 
 
 
+class UserProfileInfo(models.Model):
+        user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_profile')
+        username = models.CharField(max_length=255)
+        password = models.CharField(max_length=255)
+        full_name = models.CharField(max_length=255)
+        location = models.TextField()
+        favorite_genres_ids = models.TextField(blank=True)
+        age = models.IntegerField()
+        bio = models.TextField(max_length=500, blank=True)
+        #profile_picture = models.ImageField(upload_to='profile_pics/', blank=True)
+        phone_number = models.IntegerField()
+        email = models.EmailField()
+        REQUIRED_FIELDS = ('user',)
 
-# Currently not in use
-class UserProfile(models.Model):
-    name = models.CharField(max_length=255)
-    phoneNumber = models.IntegerField()
-    email = models.EmailField()
-    password = models.CharField(max_length=128) # Should be hashed before storing it
-    image = models.ImageField(upload_to='static/user_images/')

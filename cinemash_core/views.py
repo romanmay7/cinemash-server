@@ -1,42 +1,44 @@
 from django.contrib.auth.models import User
+from django.db.models import Count, Q
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from cinemash_core.serializers import GenericMovieDataSerializer
 
 from rest_framework import viewsets, status
 
 from .models import GenericMovieData
-from .serializers import UserSerializer
+from .serializers import UserProfileSerializer
 
 import json
 import requests
 
-from .models import Movie
+from .models import Movie, UserProfileInfo
 from django.http import JsonResponse
 
 
 # Create your views here.
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+#class UserViewSet(viewsets.ModelViewSet):
+#    queryset = User.objects.all()
+#    serializer_class = UserSerializer
 
     # Override create method to automatically set password
-    def create(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = self.perform_create(serializer)
-        user.set_password(user.password)  # Set password securely
-        user.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    def list(self, request):
-        queryset = self.get_queryset()  # Retrieve all users
-        serializer = UserSerializer(queryset, many=True)
-        return Response(serializer.data)
+  #  def create(self, request):
+  #      serializer = self.serializer_class(data=request.data)
+  #       serializer.is_valid(raise_exception=True)
+  #      user = self.perform_create(serializer)
+  #      user.set_password(user.password)  # Set password securely
+  #      user.save()
+ #       return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #def list(self, request):
+  #      queryset = self.get_queryset()  # Retrieve all users
+  #      serializer = UserSerializer(queryset, many=True)
+  #      return Response(serializer.data)
 
 
 class GenericMovieDataViewSet(viewsets.ModelViewSet):
@@ -110,3 +112,29 @@ def get_movies_json_from_db(request):
         })
 
     return JsonResponse(data, safe=False)  # Ensure proper JSON serialization
+
+@csrf_exempt
+def signup(request):
+    if request.method == 'POST':
+        print(json.loads(request.body.decode('utf-8')))
+        serializer = UserProfileSerializer(data=json.loads(request.body.decode('utf-8')))
+        if serializer.is_valid():
+            serializer.save()
+
+            # Generate auth token (optional, adjust as needed)
+            #token, _ = Token.objects.create(user=user)
+
+            return HttpResponse(status=201)
+
+        else:
+            print(serializer.errors)
+            return HttpResponse(status=400)  # Bad request status code with error messages
+    else:
+        return HttpResponse(status=405)  # Method not allowed status code
+
+class UserProfileList(APIView):
+        def get(self, request):
+            user_profiles = UserProfileInfo.objects.all()
+            serializer = UserProfileSerializer(user_profiles, many=True)
+            return Response(serializer.data)
+
