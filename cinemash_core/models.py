@@ -50,5 +50,7 @@ class UserProfileInfo(models.Model):
         #profile_picture = models.ImageField(upload_to='profile_pics/', blank=True)
         phone_number = models.IntegerField()
         email = models.EmailField()
+        joined_date = models.DateTimeField(auto_now_add=True)
+        last_login = models.DateTimeField(auto_now=True)
         REQUIRED_FIELDS = ('user',)
 

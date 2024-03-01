@@ -15,7 +15,7 @@ class MovieAdmin(admin.ModelAdmin):
 
 
 class UserProfileInfoAdmin(admin.ModelAdmin):
-    list_display = ('user', 'full_name', 'location','favorite_genres_ids','age','bio','phone_number','email')  # Fields to display in the list view
+    list_display = ('user', 'full_name', 'location','favorite_genres_ids','age','bio','phone_number','email', 'joined_date', 'last_login')  # Fields to display in the list view
     # ... other customization options (optional)
 
 #admin.site.register(GenericMovieData, CinemashAdmin, )
