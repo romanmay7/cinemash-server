@@ -1,3 +1,5 @@
+from math import sqrt
+
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.http import JsonResponse, HttpResponse
@@ -19,6 +21,7 @@ import requests
 
 from .models import Movie, UserProfileInfo
 from django.http import JsonResponse
+from fuzzywuzzy import fuzz  # Import fuzzywuzzy library for string similarity
 
 
 # Create your views here.
@@ -138,3 +141,119 @@ class UserProfileList(APIView):
             serializer = UserProfileSerializer(user_profiles, many=True)
             return Response(serializer.data)
 
+@csrf_exempt
+def find_10_most_similar_users(request):
+    data = json.loads(request.body.decode('utf-8'))
+    username = data.get('username')
+    print(username)
+    try:
+        user_profile = UserProfileInfo.objects.filter(username=username).get()
+        print(user_profile)
+        return find_N_most_similar_users(user_profile, 10)
+    except UserProfileInfo.DoesNotExist:
+        return Response(None)  # Handle the case where no profile exists
+
+
+def find_N_most_similar_users(user_profile, N, similarity_threshold=0.6):
+    """
+    Finds the N most similar users to the given user profile based on their favorite genres.
+
+    Args:
+        user_profile (UserProfileInfo): The user profile object for whom to find similar users.
+        N (int): The number of most similar users to find.
+        similarity_threshold (float, optional): The minimum similarity score
+            required to be considered similar. Defaults to 0.6.
+
+    Returns:
+        list: A list of tuples containing the user objects and their respective
+            similarity scores, sorted in descending order of similarity.
+    """
+
+    if not user_profile or not user_profile.favorite_genres_ids:
+        return []  # Handle case where genres are missing
+
+    user_genres = set(convert_favorite_genres_to_array(user_profile.favorite_genres_ids))
+
+    # Build a queryset of all users excluding the given user's associated user
+    similar_users = UserProfileInfo.objects.exclude(username=user_profile.username)
+    #print(similar_users)
+
+    # Efficiently calculate cosine similarity for each user
+    genre_weight = 0.5
+    location_weight = 0.2
+    age_weight = 0.2
+    bio_weight = 0.1
+
+    user_similarities = []
+    for potential_user in similar_users:
+        potential_user_genres = set(convert_favorite_genres_to_array(potential_user.favorite_genres_ids))
+        print(potential_user_genres)
+        intersection = user_genres.intersection(potential_user_genres)
+        union = user_genres.union(potential_user_genres)
+
+        genre_similarity = len(intersection) / sqrt(len(user_genres) * len(potential_user_genres)) if union else 0
+
+        location_similarity = fuzz.ratio(user_profile.location, potential_user.location) / 100
+
+        age_similarity = 1 - abs(user_profile.age - potential_user.age) / 100  # Adjust scaling as needed
+
+        # Consider using a similarity function for bio comparison (e.g., Levenshtein distance)
+        bio_similarity = 0.5  # Placeholder, replace with appropriate bio similarity calculation
+
+        # Combine weighted similarities
+        similarity = (genre_weight * genre_similarity +
+                      location_weight * location_similarity +
+                      age_weight * age_similarity +
+                      bio_weight * bio_similarity)
+
+        print("Similarity Score:" + str(similarity))
+
+
+        user_similarities.append((potential_user, similarity))
+
+    # Filter and sort by similarity in descending order
+    filtered_similarities = [
+        (user, score) for user, score in user_similarities if score >= similarity_threshold
+    ]
+
+    # Extract user_profile objects
+    user_profile_objects = [
+        user_info[0] for user_info in filtered_similarities[:N]
+    ]
+
+    #print(user_profile_objects)
+
+    serializer = UserProfileSerializer(user_profile_objects, many=True)
+    #print(type(serializer.data))
+
+    return JsonResponse(serializer.data,safe=False) #user_profile_objects
+
+
+
+def convert_favorite_genres_to_array(favorite_genres_ids):
+  """
+  Converts the given favorite_genres_ids to a list of integers.
+
+  Args:
+      favorite_genres_ids: The value to be converted.
+
+  Returns:
+      A list of integers containing the genre IDs.
+  """
+
+  if isinstance(favorite_genres_ids, str):
+    # Try removing square brackets if present
+    try:
+      without_brackets = favorite_genres_ids.strip('[]')
+      listOfInts = list(map(int, without_brackets.split(',')))
+      print(listOfInts)
+      return listOfInts
+    except ValueError:
+      # If removing brackets fails, handle the original string
+      return list(map(int, favorite_genres_ids.split(',')))
+  elif isinstance(favorite_genres_ids, (list, set)):
+    # If it's already a list or set, convert to list of integers
+    return list(favorite_genres_ids)
+  else:
+    # Handle unexpected data types (optional)
+    raise ValueError("Unsupported data type for favorite_genres_ids")
