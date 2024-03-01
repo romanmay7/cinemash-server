@@ -156,7 +156,8 @@ def find_10_most_similar_users(request):
 
 def find_N_most_similar_users(user_profile, N, similarity_threshold=0.6):
     """
-    Finds the N most similar users to the given user profile based on their favorite genres.
+    Finds the N most similar users to the given user profile based on their favorite genres
+    And based on other user profile attributes.
 
     Args:
         user_profile (UserProfileInfo): The user profile object for whom to find similar users.
@@ -165,8 +166,7 @@ def find_N_most_similar_users(user_profile, N, similarity_threshold=0.6):
             required to be considered similar. Defaults to 0.6.
 
     Returns:
-        list: A list of tuples containing the user objects and their respective
-            similarity scores, sorted in descending order of similarity.
+        JSON: containing the user objects
     """
 
     if not user_profile or not user_profile.favorite_genres_ids:
