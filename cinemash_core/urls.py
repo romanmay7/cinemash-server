@@ -1,7 +1,8 @@
 from django.urls import path
 #from rest_framework import routers
 #from .views import UserViewSet, GenericMovieDataViewSet
-from .views import get_and_store_movies, get_movies_json_from_db, signup, UserProfileList, find_10_most_similar_users
+from .views import (get_and_store_movies, get_movies_json_from_db, signup, UserProfileList,
+                    find_10_most_similar_users, LoginView)
 
 #router = routers.DefaultRouter()
 #router.register('api/movies', GenericMovieViewSet, 'movies')
@@ -16,7 +17,8 @@ urlpatterns = [
     path("get_movies_json_from_db/", get_movies_json_from_db, name="get_movies_json_from_db"),
     path("signup/", signup, name="signup"),
     path('userprofiles/', UserProfileList.as_view()),
-    path("find_10_most_similar_users/", find_10_most_similar_users, name="find_10_most_similar_users")
+    path("find_10_most_similar_users/", find_10_most_similar_users, name="find_10_most_similar_users"),
+    path("login_view/", LoginView.as_view())
 
 
 ]

@@ -1,5 +1,6 @@
 from math import sqrt
 
+from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.http import JsonResponse, HttpResponse
@@ -23,6 +24,8 @@ from .models import Movie, UserProfileInfo
 from django.http import JsonResponse
 from fuzzywuzzy import fuzz  # Import fuzzywuzzy library for string similarity
 
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 
 # Create your views here.
 
@@ -257,3 +260,44 @@ def convert_favorite_genres_to_array(favorite_genres_ids):
   else:
     # Handle unexpected data types (optional)
     raise ValueError("Unsupported data type for favorite_genres_ids")
+
+
+class LoginView(APIView):
+  @csrf_exempt
+  def post(self, request):
+    """
+    Handles user login and returns a JWT token if credentials are valid.
+
+    Args:
+        request (Request): The request object containing login credentials.
+
+    Returns:
+        Response: A JSON response containing the access token or an error message.
+    """
+
+    if request.method != 'POST':
+        return Response({'error': 'Method not allowed'}, status=405)
+
+    data = json.loads(request.body.decode('utf-8'))
+    username = data.get('username')
+    password = data.get('password')
+    print(username, password)
+
+    # Validate credentials using Django authentication
+    user = authenticate(username=username, password=password)
+
+    if not user:
+        return Response({'error': 'Invalid credentials'}, status=401)
+
+    # Login the user using Django's login function
+    login(request, user)
+
+    # Generate and return JWT token
+    token, _ = Token.objects.get_or_create(user=user)
+    user_profile = UserProfileInfo.objects.filter(username=username).get()
+    serialized_user = UserProfileSerializer(user_profile)  # Serialize UserProfileInfo
+
+    return Response({
+        'token': token.key,
+        'user': serialized_user.data,
+    })
